@@ -88,7 +88,7 @@ var usageTemplate = `
 Goautoenv is a tool for managing Go package dependencies.
 Usage:
 	goautoenv command [arguments]
-The commands are:
+Commands:
 {{range .}}
     {{.Name | printf "%-8s"}} {{.Short}}{{end}}
 Use "goautoenv help [command]" for more information about a command.

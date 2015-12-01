@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 	"text/template"
+	"bytes"
 )
 
 var (
@@ -106,20 +107,28 @@ func LoadEnvfile() (*Env, error) {
 func getRoot() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
 	out, e := cmd.StdoutPipe()
-	e = cmd.Run()
+	e = cmd.Start()
 	if e != nil {
 		return "", e
 	}
 	path := make([]byte, 512)
-	_, e = out.Read(path)
+	length, e := out.Read(path)
 	if e != nil {
 		return "", e
 	}
-	return string(path), nil
+	e = cmd.Wait()
+	if e != nil {
+		return "", e
+	}
+	buf := bytes.NewBuffer(path)
+	buf.Truncate(length)
+	return strings.TrimSpace(buf.String()), nil
 }
 
 func (env *Env) WriteEnvFile(writer io.Writer) error {
-	t := template.New("env_script")
-	t.Parse(envTemplateUnix)
+	t, e := template.New("env_script").Parse(envTemplateUnix)
+	if e != nil {
+		return e
+	}
 	return t.Execute(writer, env)
 }
