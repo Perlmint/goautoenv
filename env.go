@@ -30,6 +30,10 @@ GOPATH_OLD=${GOPATH}
 GOPATH=${ENV_DIR}/.envspace
 export GOPATH
 
+_GOAUTOENV_OLD_PATH=${PATH}
+PATH=${GOPATH}/bin:${PATH}
+export PATH
+
 GOPACKAGE_OLD=${GOPACKAGE}
 GOPACKAGE={{.Package}}
 export GOPACKAGE
@@ -52,6 +56,8 @@ deactivate () {
   export GOPATH
   GOPACKAGE=$GOPACKAGE_OLD
   export GOPACKAGE
+  PATH=${_GOAUTOENV_OLD_PATH}
+  export PATH
   PS1=$_OLD_GOAUTOENV_PS1
   export PS1
 
@@ -102,6 +108,27 @@ func LoadEnvfile() (*Env, error) {
 	}
 
 	return env, nil
+}
+
+func getPackage() (string, error) {
+	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
+	out, e := cmd.StdoutPipe()
+	if e != null {
+		return "", e
+	}
+		url := make([]byte, 512)
+	length, e := out.Read(url)
+	if e != nil {
+		return "", e
+	}
+	e = cmd.Wait()
+	if e != nil {
+		return "", e
+	}
+	buf := bytes.NewBuffer(url)
+	buf.Truncate(length)
+	package_url := strings.TrimSpace(buf.String())
+	return package_name, nil
 }
 
 func getRoot() (string, error) {
