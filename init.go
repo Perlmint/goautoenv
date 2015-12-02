@@ -51,6 +51,9 @@ func commandInit(cmd *Command, args []string) {
 	mkdir(goenv_workspace)
 	MakeSymbolicLink(filepath.Join(goenv_workspace, package_name_base), root)
 	writeWrap(&env, filepath.Join(goenv_bin, "activate"), WriteEnvUnixFile)
+	if runtime.GOOS == "windows" {
+		writeWrap(&env, filepath.Join(goenv_bin, "activate.ps1"), WriteEnvPSFile)
+	}
 }
 
 func writeWrap(env *Env, filename string, function func(*Env, io.Writer)error) {

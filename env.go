@@ -112,3 +112,7 @@ func writeEnvFile(env *Env, writer io.Writer, templateStr string) error {
 func WriteEnvUnixFile(env *Env, writer io.Writer) error {
 	return writeEnvFile(env, writer, envTemplateUnix)
 }
+
+func WriteEnvPSFile(env *Env, writer io.Writer) error {
+	return writeEnvFile(env, writer, envTemplatePS)
+}
