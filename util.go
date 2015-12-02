@@ -11,7 +11,7 @@ func MakeSymbolicLink(link, target string) {
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "windows":
-		cmd = exec.Command("cmd.exe", "/c", strings.Join([]string{"mklink", "/d", link, target}, " "))
+		cmd = exec.Command("powershell", "-Command", "Start-Process cmd -ArgumentList\"/c," + strings.Join([]string{"mklink", "/d", link, target + "\" -Verb RunAs"}, " "))
 	default:
 		cmd = exec.Command("ln", "-s", target, link)
 	}
