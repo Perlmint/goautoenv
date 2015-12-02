@@ -1,24 +1,24 @@
 package main
 
 import (
-	"os"
-	"log"
-	"strings"
 	"fmt"
+	"io"
+	"log"
+	"os"
 	"path/filepath"
 	"runtime"
-	"io"
+	"strings"
 )
 
 var cmdInit = &Command{
 	Usage: "init [package]",
 	Short: "init goautoenv",
-	Long:  `
+	Long: `
 
 Initialize goautoenv. It will generate some scripts and directory will be set as "GOPATH". also it will create a symbolic link. On the windows, This program needs admin permisson for creating symbolic link. This maybe prompt privilege elevation.
 
 After initialization, you can activate by running ".goenv/bin/activate" or ".goenv/bin/activate.ps1" or ".goenv/bin/activate.bat". You can deactivate this by running "deactivate"`,
-	Run:   commandInit,
+	Run: commandInit,
 }
 
 func mkdir(path string) {
@@ -40,13 +40,13 @@ func commandInit(cmd *Command, args []string) {
 
 	package_name := args[0]
 	package_name_splits := strings.Split(package_name, "/")
-	package_name_prefix := package_name_splits[:len(package_name_splits) - 1]
-	package_name_base := package_name_splits[len(package_name_splits) - 1]
+	package_name_prefix := package_name_splits[:len(package_name_splits)-1]
+	package_name_base := package_name_splits[len(package_name_splits)-1]
 
 	goenv_root := filepath.Join(root, ".goenv")
 	goenv_bin := filepath.Join(goenv_root, "bin")
 	goenv_workspace := filepath.Join(goenv_root, "src", filepath.Join(package_name_prefix...))
-	env := Env{package_name, root}
+	env := Environment{package_name, root}
 	mkdir(goenv_bin)
 	mkdir(goenv_workspace)
 	MakeSymbolicLink(filepath.Join(goenv_workspace, package_name_base), root)
@@ -56,8 +56,8 @@ func commandInit(cmd *Command, args []string) {
 	}
 }
 
-func writeWrap(env *Env, filename string, function func(*Env, io.Writer)error) {
-	file, e := os.OpenFile(filename, os.O_CREATE | os.O_WRONLY, 0755)
+func writeWrap(env *Environment, filename string, function func(*Environment, io.Writer) error) {
+	file, e := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0755)
 	defer file.Close()
 	if e != nil {
 		log.Println("Open failed : %q", e)

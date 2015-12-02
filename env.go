@@ -2,22 +2,34 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"io"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"text/template"
-	"bytes"
-	"runtime"
 )
 
-type Env struct {
+var (
+	aliases []string = []string{
+		"go",
+		"godep",
+	}
+)
+
+type Environment struct {
 	Package string
 	Root    string
 }
 
-func LoadEnvfile() (*Env, error) {
+type envWrap struct {
+	Env     *Environment
+	Aliases []string
+}
+
+func LoadEnvfile() (*Environment, error) {
 	root, e := getRoot()
 	if e != nil {
 		return nil, e
@@ -29,7 +41,7 @@ func LoadEnvfile() (*Env, error) {
 		return nil, e
 	}
 
-	env := new(Env)
+	env := new(Environment)
 
 	r := bufio.NewReader(fi)
 	for true {
@@ -60,7 +72,7 @@ func getPackage() (string, error) {
 	if e != nil {
 		return "", e
 	}
-		url := make([]byte, 512)
+	url := make([]byte, 512)
 	length, e := out.Read(url)
 	if e != nil {
 		return "", e
@@ -101,18 +113,18 @@ func getRoot() (string, error) {
 	return root, nil
 }
 
-func writeEnvFile(env *Env, writer io.Writer, templateStr string) error {
+func writeEnvFile(wrap envWrap, writer io.Writer, templateStr string) error {
 	t, e := template.New("env_script").Parse(templateStr)
 	if e != nil {
 		return e
 	}
-	return t.Execute(writer, env)
+	return t.Execute(writer, wrap)
 }
 
-func WriteEnvUnixFile(env *Env, writer io.Writer) error {
-	return writeEnvFile(env, writer, envTemplateUnix)
+func WriteEnvUnixFile(env *Environment, writer io.Writer) error {
+	return writeEnvFile(envWrap{env, aliases}, writer, envTemplateUnix)
 }
 
-func WriteEnvPSFile(env *Env, writer io.Writer) error {
-	return writeEnvFile(env, writer, envTemplatePS)
+func WriteEnvPSFile(env *Environment, writer io.Writer) error {
+	return writeEnvFile(envWrap{env, aliases}, writer, envTemplatePS)
 }

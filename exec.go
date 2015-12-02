@@ -20,7 +20,7 @@ func commandExec(cmd *Command, args []string) {
 }
 
 // returns exit code
-func ExecInWorkspace(env *Env, command string, args []string) int {
+func ExecInWorkspace(env *Environment, command string, args []string) int {
 	curPath, e := os.Getwd()
 	if e != nil {
 		panic(fmt.Sprintf("Failed to get Working directory. %q", e))

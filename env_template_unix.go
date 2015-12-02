@@ -13,7 +13,7 @@ func init() {
 # Please do not change this file.
 #
 
-ENV_DIR={{.Root}}
+ENV_DIR={{.Env.Root}}
 
 GOPATH_OLD=${GOPATH}
 GOPATH=${ENV_DIR}/.goenv
@@ -24,7 +24,7 @@ PATH=${GOPATH}/bin:${PATH}
 export PATH
 
 GOPACKAGE_OLD=${GOPACKAGE}
-GOPACKAGE={{.Package}}
+GOPACKAGE={{.Env.Package}}
 export GOPACKAGE
 
 _GOAUTOENV_WORKSPACE=${GOPATH}/src/${GOPACKAGE}
@@ -32,13 +32,15 @@ _GOAUTOENV_WORKSPACE=${GOPATH}/src/${GOPACKAGE}
 _OLD_GOAUTOENV_PS1="$PS1"
 PS1="($GOPACKAGE)\n$PS1"
 
-_GOAUTOENV_GODEP=$(which godep)
+{{range $e := .Aliases}}
+_GOAUTOENV_{{$e}}=$(which {{$e}})
 
-godep () {
+{{$e}} () {
   pushd $_GOAUTOENV_WORKSPACE > /dev/null 2>&1
-  $_GOAUTOENV_GODEP $@
+  $_GOAUTOENV_{{$e}} $@
   popd > /dev/null 2>&1
 }
+{{end}}
 
 deactivate () {
   GOPATH=$GOPATH_OLD
@@ -51,8 +53,10 @@ deactivate () {
   export PS1
 
   unset -f deactivate
-  unset -f godep
-  unset _GOAUTOENV_GODEP
+  {{range $e := .Aliases}}
+  unset -f {{$e}}
+  unset _GOAUTOENV_{{$e}}
+  {{end}}
 }
 `
 }
