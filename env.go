@@ -57,7 +57,7 @@ func LoadEnvfile() (*Env, error) {
 func getPackage() (string, error) {
 	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
 	out, e := cmd.StdoutPipe()
-	if e != null {
+	if e != nil {
 		return "", e
 	}
 		url := make([]byte, 512)
@@ -72,7 +72,7 @@ func getPackage() (string, error) {
 	buf := bytes.NewBuffer(url)
 	buf.Truncate(length)
 	package_url := strings.TrimSpace(buf.String())
-	return package_name, nil
+	return package_url, nil
 }
 
 func getRoot() (string, error) {
