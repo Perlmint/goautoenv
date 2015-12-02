@@ -5,7 +5,9 @@ import (
 	"log"
 	"strings"
 	"fmt"
-		"path/filepath"
+	"path/filepath"
+	"runtime"
+	"io"
 )
 
 var cmdInit = &Command{
@@ -44,17 +46,22 @@ func commandInit(cmd *Command, args []string) {
 	goenv_root := filepath.Join(root, ".goenv")
 	goenv_bin := filepath.Join(goenv_root, "bin")
 	goenv_workspace := filepath.Join(goenv_root, "src", filepath.Join(package_name_prefix...))
-	env := Env{package_name, goenv_root}
+	env := Env{package_name, root}
 	mkdir(goenv_bin)
 	mkdir(goenv_workspace)
 	MakeSymbolicLink(filepath.Join(goenv_workspace, package_name_base), root)
-	file, e := os.OpenFile(filepath.Join(goenv_bin, "activate"), os.O_EXCL | os.O_CREATE | os.O_WRONLY, 0755)
+	writeWrap(&env, filepath.Join(goenv_bin, "activate"), WriteEnvUnixFile)
+}
+
+func writeWrap(env *Env, filename string, function func(*Env, io.Writer)error) {
+	file, e := os.OpenFile(filename, os.O_CREATE | os.O_WRONLY, 0755)
 	defer file.Close()
 	if e != nil {
-		log.Fatalf("Open failed : %q", e)
-	}
-	e = env.WriteEnvFile(file)
-	if e != nil {
-		log.Fatalf("Write failed : %q", e)
+		log.Println("Open failed : %q", e)
+	} else {
+		e = function(env, file)
+		if e != nil {
+			log.Println("Write failed : %q", e)
+		}
 	}
 }
