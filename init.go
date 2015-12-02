@@ -21,11 +21,12 @@ After initialization, you can activate by running ".goenv/bin/activate" or ".goe
 	Run: commandInit,
 }
 
-func mkdir(path string) {
+func mkdir(path string) error {
 	e := os.MkdirAll(path, os.FileMode(0755))
 	if e != nil {
 		log.Printf("Failed to make dir %q. %q\n", path, e)
 	}
+	return e
 }
 
 func commandInit(cmd *Command, args []string) {
@@ -34,11 +35,17 @@ func commandInit(cmd *Command, args []string) {
 		panic(fmt.Sprintf("Error occured while getting root of this source tree : %q", e))
 	}
 
+	var package_name string
 	if len(args) < 1 {
-		panic(fmt.Sprintf("Error. package named is needed."))
+		package_name, _ = getPackage()
+		log.Printf(package_name)
+		if len(package_name) == 0 {
+			panic(fmt.Sprintf("Error. package named is needed."))
+		}
+	} else {
+		package_name = args[0]
 	}
 
-	package_name := args[0]
 	package_name_splits := strings.Split(package_name, "/")
 	package_name_prefix := package_name_splits[:len(package_name_splits)-1]
 	package_name_base := package_name_splits[len(package_name_splits)-1]
@@ -57,7 +64,7 @@ func commandInit(cmd *Command, args []string) {
 }
 
 func writeWrap(env *Environment, filename string, function func(*Environment, io.Writer) error) {
-	file, e := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0755)
+	file, e := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
 	defer file.Close()
 	if e != nil {
 		log.Println("Open failed : %q", e)

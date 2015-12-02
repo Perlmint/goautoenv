@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strings"
 	"text/template"
@@ -17,6 +19,8 @@ var (
 		"go",
 		"godep",
 	}
+	git_http_re *regexp.Regexp = regexp.MustCompile("^https?://(.+).git$")
+	git_ssh_re  *regexp.Regexp = regexp.MustCompile("^.+@([^:]+):(.+).git$")
 )
 
 type Environment struct {
@@ -66,12 +70,13 @@ func LoadEnvfile() (*Environment, error) {
 	return env, nil
 }
 
-func getPackage() (string, error) {
+func getPackageNameGit() (string, error) {
 	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
 	out, e := cmd.StdoutPipe()
 	if e != nil {
 		return "", e
 	}
+	cmd.Start()
 	url := make([]byte, 512)
 	length, e := out.Read(url)
 	if e != nil {
@@ -84,7 +89,20 @@ func getPackage() (string, error) {
 	buf := bytes.NewBuffer(url)
 	buf.Truncate(length)
 	package_url := strings.TrimSpace(buf.String())
-	return package_url, nil
+	if strs := git_http_re.FindStringSubmatch(package_url); len(strs) != 0 {
+		return strs[1], nil
+	} else if strs := git_ssh_re.FindStringSubmatch(package_url); len(strs) != 0 {
+		return fmt.Sprintf("%s/%s", strs[1], strs[2]), nil
+	} else {
+		return "", errors.New("not matched")
+	}
+}
+
+func getPackage() (string, error) {
+	if name, _ := getPackageNameGit(); len(name) != 0 {
+		return name, nil
+	}
+	return "", nil
 }
 
 func getRoot() (string, error) {
