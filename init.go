@@ -21,14 +21,6 @@ After initialization, you can activate by running ".goenv/bin/activate" or ".goe
 	Run: commandInit,
 }
 
-func mkdir(path string) error {
-	e := os.MkdirAll(path, os.FileMode(0755))
-	if e != nil {
-		log.Printf("Failed to make dir %q. %q\n", path, e)
-	}
-	return e
-}
-
 func commandInit(cmd *Command, args []string) {
 	root, e := getRoot()
 	if e != nil {

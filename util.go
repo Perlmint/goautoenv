@@ -1,22 +1,14 @@
 package main
 
 import (
-	"runtime"
+	"log"
 	"os"
-	"os/exec"
-	"strings"
 )
 
-func MakeSymbolicLink(link, target string) {
-	var cmd *exec.Cmd
-	switch runtime.GOOS {
-	case "windows":
-		cmd = exec.Command("powershell", "-Command", "Start-Process cmd -ArgumentList\"/c," + strings.Join([]string{"mklink", "/d", link, target + "\" -Verb RunAs"}, " "))
-	default:
-		cmd = exec.Command("ln", "-s", target, link)
+func mkdir(path string) error {
+	e := os.MkdirAll(path, os.FileMode(0755))
+	if e != nil {
+		log.Printf("Failed to make dir %q. %q\n", path, e)
 	}
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	_ = cmd.Start()
-	_ = cmd.Wait()
+	return e
 }
