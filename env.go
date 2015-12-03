@@ -21,6 +21,8 @@ var (
 	}
 	git_http_re *regexp.Regexp = regexp.MustCompile("^https?://(.+).git$")
 	git_ssh_re  *regexp.Regexp = regexp.MustCompile("^.+@([^:]+):(.+).git$")
+	hg_http_re  *regexp.Regexp = regexp.MustCompile("^https?://(.+)$")
+	hg_ssh_re   *regexp.Regexp = regexp.MustCompile("^ssh://[^@]+@(.+)$")
 )
 
 type Environment struct {
@@ -98,14 +100,50 @@ func getPackageNameGit() (string, error) {
 	}
 }
 
-func getPackage() (string, error) {
-	if name, _ := getPackageNameGit(); len(name) != 0 {
-		return name, nil
+func getPackageNameHg() (string, error) {
+	cmd := exec.Command("hg", "paths", "default")
+	out, e := cmd.StdoutPipe()
+	if e != nil {
+		return "", e
 	}
-	return "", nil
+	cmd.Start()
+	url := make([]byte, 512)
+	length, e := out.Read(url)
+	if e != nil {
+		return "", e
+	}
+	e = cmd.Wait()
+	if e != nil {
+		return "", e
+	}
+	buf := bytes.NewBuffer(url)
+	buf.Truncate(length)
+	package_url := strings.TrimSpace(buf.String())
+	if strs := hg_http_re.FindStringSubmatch(package_url); len(strs) != 0 {
+		return strs[1], nil
+	} else if strs := hg_ssh_re.FindStringSubmatch(package_url); len(strs) != 0 {
+		return strs[1], nil
+	} else {
+		return "", errors.New("not matched")
+	}
 }
 
-func getRoot() (string, error) {
+func getPackage() (string, error) {
+	var (
+		name string
+		e    error
+	)
+	name, e = getPackageNameGit()
+	if len(name) == 0 {
+		name, e = getPackageNameHg()
+	}
+	if len(name) == 0 {
+		return name, e
+	}
+	return name, e
+}
+
+func getRootGit() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
 	out, e := cmd.StdoutPipe()
 	e = cmd.Start()
@@ -123,7 +161,39 @@ func getRoot() (string, error) {
 	}
 	buf := bytes.NewBuffer(path)
 	buf.Truncate(length)
-	root := strings.TrimSpace(buf.String())
+	return strings.TrimSpace(buf.String()), nil
+}
+
+func getRootHg() (string, error) {
+	cmd := exec.Command("hg", "root")
+	out, e := cmd.StdoutPipe()
+	e = cmd.Start()
+	if e != nil {
+		return "", e
+	}
+	path := make([]byte, 512)
+	length, e := out.Read(path)
+	if e != nil {
+		return "", e
+	}
+	e = cmd.Wait()
+	if e != nil {
+		return "", e
+	}
+	buf := bytes.NewBuffer(path)
+	buf.Truncate(length)
+	return strings.TrimSpace(buf.String()), nil
+}
+
+func getRoot() (string, error) {
+	var root string
+	root, _ = getRootGit()
+	if len(root) == 0 {
+		root, _ = getRootHg()
+	}
+	if len(root) == 0 {
+		return "", errors.New("Can't find root of local repository for working directory")
+	}
 	switch runtime.GOOS {
 	case "windows":
 		root = strings.Replace(root, "/", "\\", -1)
