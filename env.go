@@ -208,11 +208,3 @@ func writeEnvFile(wrap envWrap, writer io.Writer, templateStr string) error {
 	}
 	return t.Execute(writer, wrap)
 }
-
-func WriteEnvUnixFile(env *Environment, writer io.Writer) error {
-	return writeEnvFile(envWrap{env, aliases}, writer, envTemplateUnix)
-}
-
-func WriteEnvPSFile(env *Environment, writer io.Writer) error {
-	return writeEnvFile(envWrap{env, aliases}, writer, envTemplatePS)
-}

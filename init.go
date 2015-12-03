@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
@@ -49,10 +48,7 @@ func commandInit(cmd *Command, args []string) {
 	mkdir(goenv_bin)
 	mkdir(goenv_workspace)
 	MakeSymbolicLink(filepath.Join(goenv_workspace, package_name_base), root)
-	writeWrap(&env, filepath.Join(goenv_bin, "activate"), WriteEnvUnixFile)
-	if runtime.GOOS == "windows" {
-		writeWrap(&env, filepath.Join(goenv_bin, "activate.ps1"), WriteEnvPSFile)
-	}
+	writeEnvScripts(&env, goenv_bin)
 }
 
 func writeWrap(env *Environment, filename string, function func(*Environment, io.Writer) error) {
