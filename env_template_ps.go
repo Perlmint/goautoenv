@@ -15,15 +15,15 @@ func init() {
 
 $script:ENV_DIR = "{{.Env.Root}}"
 
-$global:GOPATH_OLD = $global:GOPATH
-$global:GOPATH = "$($script:ENV_DIR)/.goenv"
+$global:GOPATH_OLD = $env:GOPATH
+$env:GOPATH = "$($script:ENV_DIR)/.goenv"
 
-$global:_GOAUTOENV_OLD_PATH = $global:PATH
-$global:PATH = "$($global:GOPATH)/bin;$($global:PATH)"
+$global:_GOAUTOENV_OLD_PATH = $env:PATH
+$env:PATH = "$($env:GOPATH)/bin;$($env:PATH)"
 
 $global:GOPACKAGE = "{{.Env.Package}}"
 
-$global:_GOAUTOENV_WORKSPACE = "$($global:GOPATH)/src/$GOPACKAGE"
+$global:_GOAUTOENV_WORKSPACE = "$($env:GOPATH)/src/$GOPACKAGE"
 
 function global:_OLD_GOAUTOENV_PROMPT { "" }
 $function:_OLD_GOAUTOENV_PROMPT = $function:prompt
@@ -35,23 +35,23 @@ function global:prompt {
 {{range $e := .Aliases}}
 $global:_GOAUTOENV_{{$e}}=Get-Command {{$e}} | Select-Object -ExpandProperty path
 
-function global:{{$e}} ($args) {
+function global:{{$e}} () {
   pushd $global:_GOAUTOENV_WORKSPACE
-  Invoke-Expression "$global:_GOAUTOENV_{{$e}} $args"
+  Invoke-Expression "$global:_GOAUTOENV_{{$e}} $Args"
   popd
 }
 {{end}}
 
 function global:deactivate () {
-  $global:GOPATH = $global:GOPATH_OLD
+  $env:GOPATH = $global:GOPATH_OLD
   $global:GOPACKAGE = $global:GOPACKAGE_OLD
-  $global:PATH = $global:_GOAUTOENV_OLD_PATH
+  $env:PATH = $global:_GOAUTOENV_OLD_PATH
   $function:prompt = $function:_OLD_GOAUTOENV_PROMPT
 
   remove-item function:deactivate
   {{range $e := .Aliases}}
   remove-item function:{{$e}}
-  remove-item global:_GOAUTOENV_{{$e}}
+  remove-variable _GOAUTOENV_{{$e}}
   {{end}}
 }
 `
