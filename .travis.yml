@@ -1,0 +1,12 @@
+language: go
+
+sudo: false
+
+go:
+  - 1.3
+  - tip
+
+go_import_path: github.com/Perlmint/goautoenv
+
+script:
+  - go build
