@@ -18,7 +18,7 @@ After initialization, you can activate by running ".goenv/bin/activate" or ".goe
 	Run: commandInit,
 }
 
-func commandInit(cmd *Command, args []string) {
+func commandInit(cmd *Command, args []string) bool {
 	root, e := getRoot()
 	if e != nil {
 		panic(fmt.Sprintf("Error occured while getting root of this source tree : %q", e))
@@ -47,4 +47,6 @@ func commandInit(cmd *Command, args []string) {
 	mkdir(goenv_workspace)
 	MakeSymbolicLink(filepath.Join(goenv_workspace, package_name_base), root)
 	writeEnvScripts(&env, goenv_bin)
+
+	return true
 }

@@ -16,7 +16,8 @@ var cmdExec = &Command{
 	Run:   commandExec,
 }
 
-func commandExec(cmd *Command, args []string) {
+func commandExec(cmd *Command, args []string) bool {
+	return true
 }
 
 // returns exit code

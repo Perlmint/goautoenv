@@ -19,7 +19,7 @@ You can activate by running ".goenv/bin/activate" or ".goenv/bin/activate.ps1" o
 	Run: commandLink,
 }
 
-func commandLink(cmd *Command, args []string) {
+func commandLink(cmd *Command, args []string) bool {
 	root, e := getRoot()
 	if e != nil {
 		panic(fmt.Sprintf("Error occured while getting root of this source tree : %q", e))
@@ -48,4 +48,6 @@ func commandLink(cmd *Command, args []string) {
 	mkdir(goenv_workspace)
 	MakeSymbolicLink(filepath.Join(goenv_workspace, package_name_base), root)
 	writeEnvScripts(&env, goenv_bin)
+
+	return true
 }
