@@ -53,6 +53,7 @@ func (c *Command) UsageExit() {
 var commands = []*Command{
 	cmdInit,
 	cmdExec,
+	cmdLink,
 }
 
 func main() {
