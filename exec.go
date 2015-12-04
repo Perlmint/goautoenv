@@ -4,19 +4,36 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
+	"path/filepath"
 	"syscall"
 )
 
 var cmdExec = &Command{
-	Usage: `
-`,
-	Short: "",
-	Long:  ``,
-	Run:   commandExec,
+	Usage: "exec command args...",
+	Short: "exec command in env",
+	Long: `
+Execute command in goautoenv.
+
+Stdin, Stdout, Stderr are all redirected`,
+	Run: commandExec,
 }
 
 func commandExec(cmd *Command, args []string) bool {
+	env, e := LoadEnvfile()
+	if e != nil {
+		panic(e)
+	}
+
+	l := len(args)
+	switch {
+	case l > 1:
+		ExecInWorkspace(env, args[0], args[1:])
+	case l == 1:
+		ExecInWorkspace(env, args[0], []string{})
+	case l == 0:
+		return false
+	}
+
 	return true
 }
 
@@ -27,10 +44,14 @@ func ExecInWorkspace(env *Environment, command string, args []string) int {
 		panic(fmt.Sprintf("Failed to get Working directory. %q", e))
 	}
 
-	os.Chdir(strings.Join([]string{env.Root, env.Package}, "/"))
+	os.Chdir(filepath.Join(env.GOPATH, "src", env.Package))
 
+	os.Setenv("GOPATH", env.GOPATH)
 	defer os.Chdir(curPath)
 	cmd := exec.Command(command, args...)
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
 	e = cmd.Start()
 
 	if err := cmd.Wait(); err != nil {
