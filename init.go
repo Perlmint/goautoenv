@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -49,17 +47,4 @@ func commandInit(cmd *Command, args []string) {
 	mkdir(goenv_workspace)
 	MakeSymbolicLink(filepath.Join(goenv_workspace, package_name_base), root)
 	writeEnvScripts(&env, goenv_bin)
-}
-
-func writeWrap(env *Environment, filename string, function func(*Environment, io.Writer) error) {
-	file, e := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
-	defer file.Close()
-	if e != nil {
-		log.Println("Open failed : %q", e)
-	} else {
-		e = function(env, file)
-		if e != nil {
-			log.Println("Write failed : %q", e)
-		}
-	}
 }

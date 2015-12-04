@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -208,4 +209,17 @@ func writeEnvFile(wrap envWrap, writer io.Writer, templateStr string) error {
 		return e
 	}
 	return t.Execute(writer, wrap)
+}
+
+func writeWrap(env *Environment, filename string, function func(*Environment, io.Writer) error) {
+	file, e := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+	defer file.Close()
+	if e != nil {
+		log.Println("Open failed : %q", e)
+	} else {
+		e = function(env, file)
+		if e != nil {
+			log.Println("Write failed : %q", e)
+		}
+	}
 }
