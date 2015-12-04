@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
@@ -43,7 +44,7 @@ func LoadEnvfile() (*Environment, error) {
 		return nil, e
 	}
 
-	env_path := strings.Join([]string{root, ".env"}, "/")
+	env_path := filepath.Join(root, ".goenv", "bin", "activate")
 	fi, e := os.OpenFile(env_path, os.O_RDONLY, os.ModePerm)
 	if e != nil {
 		return nil, e
