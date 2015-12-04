@@ -53,18 +53,21 @@ func LoadEnvfile() (*Environment, error) {
 	env := new(Environment)
 
 	r := bufio.NewReader(fi)
-	for true {
+	for count := 3; count > 0; {
 		line, e := r.ReadString('\n')
 		if e != nil {
 			break
 		}
 		switch {
-		case strings.HasPrefix(line, "ENV_DIR"):
-			env.Root = strings.SplitN(line, "=", 1)[1]
-			break
-		case strings.HasPrefix(line, "GOPACKAGE"):
-			env.Package = strings.SplitN(line, "=", 1)[1]
-			break
+		case strings.HasPrefix(line, "ENV_DIR="):
+			env.Root = strings.TrimSpace(strings.SplitN(line, "=", 2)[1])
+			count--
+		case strings.HasPrefix(line, "GOPACKAGE="):
+			env.Package = strings.TrimSpace(strings.SplitN(line, "=", 2)[1])
+			count--
+		case strings.HasPrefix(line, "GOPATH="):
+			env.GOPATH = strings.TrimSpace(strings.SplitN(line, "=", 2)[1])
+			count--
 		}
 	}
 
