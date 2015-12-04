@@ -44,7 +44,7 @@ func commandInit(cmd *Command, args []string) {
 	goenv_root := filepath.Join(root, ".goenv")
 	goenv_bin := filepath.Join(goenv_root, "bin")
 	goenv_workspace := filepath.Join(goenv_root, "src", filepath.Join(package_name_prefix...))
-	env := Environment{package_name, root}
+	env := Environment{package_name, root, goenv_root}
 	mkdir(goenv_bin)
 	mkdir(goenv_workspace)
 	MakeSymbolicLink(filepath.Join(goenv_workspace, package_name_base), root)

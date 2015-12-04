@@ -15,7 +15,7 @@ var envTemplatePS string = `
 $script:ENV_DIR = "{{.Env.Root}}"
 
 $global:GOPATH_OLD = $env:GOPATH
-$env:GOPATH = "$($script:ENV_DIR)/.goenv"
+$env:GOPATH = "{{.Env.GOPATH}}"
 
 $global:_GOAUTOENV_OLD_PATH = $env:PATH
 $env:PATH = "$($env:GOPATH)/bin;$($env:PATH)"

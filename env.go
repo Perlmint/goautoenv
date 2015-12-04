@@ -28,6 +28,7 @@ var (
 type Environment struct {
 	Package string
 	Root    string
+	GOPATH  string
 }
 
 type envWrap struct {

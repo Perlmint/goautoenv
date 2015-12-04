@@ -13,7 +13,7 @@ var envTemplateUnix string = `
 ENV_DIR={{.Env.Root}}
 
 GOPATH_OLD=${GOPATH}
-GOPATH=${ENV_DIR}/.goenv
+GOPATH={{.Env.GOPATH}}
 export GOPATH
 
 _GOAUTOENV_OLD_PATH=${PATH}
