@@ -54,6 +54,7 @@ var commands = []*Command{
 	cmdInit,
 	cmdExec,
 	cmdLink,
+	cmdVersion,
 }
 
 func main() {
@@ -89,10 +90,11 @@ func main() {
 
 var usageTemplate = `
 Goautoenv is a tool for managing Go package dependencies.
+version {{.Version}}
 Usage:
 	goautoenv command [arguments]
 Commands:
-{{range .}}
+{{range .Commands}}
     {{.Name | printf "%-8s"}} {{.Short}}{{end}}
 Use "goautoenv help [command]" for more information about a command.
 `
@@ -126,7 +128,13 @@ func usageExit() {
 }
 
 func printUsage(w io.Writer) {
-	tmpl(w, usageTemplate, commands)
+	tmpl(w, usageTemplate, struct {
+		Commands []*Command
+		Version  string
+	}{
+		commands,
+		versionString,
+	})
 }
 
 // tmpl executes the given template text on data, writing the result to w.
